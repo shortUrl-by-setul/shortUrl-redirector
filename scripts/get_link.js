@@ -17,7 +17,7 @@ function start(url) {
     const url_key = parseUrl(url);
     console.log('URL key:', url_key);
     if (!url_key) {
-        redirectUser('/404');
+        redirectUser('/nfd');
         return;
     }
     // Check for cached link
@@ -58,7 +58,7 @@ function redirectUser(link) {
     var meta = document.createElement('meta');
     meta.httpEquiv = "refresh";
     meta.content = `0;url=${link}`;
-    // document.getElementsByTagName('head')[0].appendChild(meta);
+    document.getElementsByTagName('head')[0].appendChild(meta);
 }
 
 // Check for and validate cached link, redirect user to long link if available
