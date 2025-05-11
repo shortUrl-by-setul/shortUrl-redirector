@@ -37,7 +37,7 @@ body {
     }
 }
 
-.spinner {
+/* .spinner {
     width: 70.4px;
     height: 70.4px;
     --clr: var(--accent-color);
@@ -96,4 +96,4 @@ body {
     100% {
         transform: rotate(45deg) rotateX(-385deg) rotateY(385deg);
     }
-}
+} */

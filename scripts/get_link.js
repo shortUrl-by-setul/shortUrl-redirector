@@ -63,11 +63,11 @@ function redirectUser(link) {
     var meta = document.createElement('meta');
     meta.httpEquiv = "refresh";
     meta.content = `0;url=${link}`;
-    // document.getElementsByTagName('head')[0].appendChild(meta);
+    document.getElementsByTagName('head')[0].appendChild(meta);
     // Set body to link in case redirect fails
-    setTimeout(() => {
-        document.body.querySelector('p').innerHTML = `If you are not redirected, follow this link:  <br/>  <a href="${link}">${link}</a>`;
-    }, 1000);
+    // setTimeout(() => {
+    //     document.body.querySelector('p').innerHTML = `If you are not redirected, follow this link:  <br/>  <a href="${link}">${link}</a>`;
+    // }, 1000);
 }
 
 // Check for and validate cached link, redirect user to long link if available
@@ -86,7 +86,7 @@ function getLinkCache(item) {
         }
         else {
             console.info('Cached link is too old. Cleaning up...');
-            localStorage.removeItem(shortUrl);
+            localStorage.removeItem(item);
         }
     }
     return null;
@@ -95,7 +95,7 @@ function getLinkCache(item) {
 // Grab the long link the corresponds to this short link from the database
 async function getLink(key) {
     // Reach out to database and get long url that corresponds to short url
-    const { data, error } = await supabase.functions.invoke('redirect', { body: { short_url_key: key } });
+    const { data, error } = await _supabase.functions.invoke('redirect', { body: { short_url_key: key } });
 
     // Check for errors
     // If error exists, we handle it based on its type.
@@ -122,6 +122,6 @@ async function getLink(key) {
         return null;
     }
     console.info('Got long url:', data.long_url);
-    localStorage.setItem(shortUrl, JSON.stringify({ long_url: data.long_url, created_at: new Date().toISOString() }));
+    localStorage.setItem(key, JSON.stringify({ long_url: data.long_url, created_at: new Date().toISOString() }));
     return data.long_url;
 }
