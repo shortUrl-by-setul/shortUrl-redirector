@@ -8,7 +8,7 @@ start(window.location.href);
 *  FUNCTIONS   *
 ***************/
 // On init, validate url, check for cached link or get from database, redirect user
-function start(url) {
+async function start(url) {
     // Validate url and get key section
     const url_key = parseUrl(url);
     console.log('URL key:', url_key);
@@ -25,7 +25,7 @@ function start(url) {
     // If not cached, reach out to database
     console.info('No cached link available. Reaching out to database...');
     try {
-        const link = getLink(url_key);
+        const link = await getLink(url_key);
         if (!link) {
             redirectUser('/nfd');
             return;
@@ -63,7 +63,7 @@ function redirectUser(link) {
     var meta = document.createElement('meta');
     meta.httpEquiv = "refresh";
     meta.content = `0;url=${link}`;
-    document.getElementsByTagName('head')[0].appendChild(meta);
+    // document.getElementsByTagName('head')[0].appendChild(meta);
     // Set body to link in case redirect fails
     setTimeout(() => {
         document.body.querySelector('p').innerHTML = `If you are not redirected, follow this link:  <br/>  <a href="${link}">${link}</a>`;
