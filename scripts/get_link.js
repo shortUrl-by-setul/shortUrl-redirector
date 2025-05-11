@@ -14,30 +14,32 @@ async function start(url) {
     console.log('URL key:', url_key);
     if (!url_key) {
         redirectUser('/nfd');
-        return;
     }
-    // Check for cached link
-    const cachedLink = getLinkCache(url_key);
-    if (cachedLink) {
-        redirectUser(cachedLink);
-        return;
-    }
-    // If not cached, reach out to database
-    console.info('No cached link available. Reaching out to database...');
-    try {
-        const link = await getLink(url_key);
-        if (!link) {
-            redirectUser('/nfd');
-            return;
+    else {
+        // Check for cached link
+        const cachedLink = getLinkCache(url_key);
+        if (cachedLink) {
+            redirectUser(cachedLink);
         }
-        redirectUser(link);
-        return;
+        else {
+            // If not cached, reach out to database
+            console.info('No cached link available. Reaching out to database...');
+            try {
+                const link = await getLink(url_key);
+                if (!link) {
+                    redirectUser('/nfd');
+                }
+                else {
+                    redirectUser(link);
+                }
+            }
+            catch (error) {
+                console.error(error);
+                redirectUser('/rip');
+            }
+        }
     }
-    catch (error) {
-        console.error(error);
-        redirectUser('/rip');
-        return;
-    }
+
 }
 
 function parseUrl(url) {
