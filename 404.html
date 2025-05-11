@@ -1,13 +1,29 @@
-<!-- Redirect to index.html with a search parameter that is the short url key so the script can run -->
-<noscript>You need to enable JavaScript to run this app.</noscript>
-<script>
-    // Extract the path from the URL
-    const path = window.location.pathname;
-    //Remove trailing and/or leading slash
-    const key_temp = path.startsWith('/') ? path.slice(1) : path;
-    const key = key_temp.endsWith('/') ? key_temp.slice(0, -1) : key_temp;
-    // Redirect to index.html with query parameter
-    if (key) {
-        window.location.replace(`/?key=${key}`);
-    }
-</script>
+<!DOCTYPE html>
+<!-- Redirect to index.html with a search parameter that is the short url key so the script can run to find the long url -->
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
+    <script>
+        // Extract the path from the URL
+        const path = window.location.pathname;
+        //Remove trailing and/or leading slash
+        const key_temp = path.startsWith('/') ? path.slice(1) : path;
+        const key = key_temp.endsWith('/') ? key_temp.slice(0, -1) : key_temp;
+        // Redirect to index.html with query parameter
+        if (key) {
+            window.location.replace(`/?key=${key}`);
+        }
+    </script>
+</head>
+
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+</body>
+
+</html>

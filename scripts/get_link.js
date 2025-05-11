@@ -1,12 +1,8 @@
 // Number of days to keep cache (i.e. cached url expires after x days)
 const CACHE_LIFETIME_DAYS = 30;
 
-// Get url and remove trailing slash
-const currentUrl = window.location.href;
-const shortUrl = currentUrl.endsWith('/') ? currentUrl.slice(0, -1) : currentUrl;
-console.info("Page URL:", shortUrl);
 // Start redirection process
-start(shortUrl);
+start(window.location.href);
 
 /***************
 *  FUNCTIONS   *
@@ -21,14 +17,27 @@ function start(url) {
         return;
     }
     // Check for cached link
-    const cachedLink = getLinkCache(url);
+    const cachedLink = getLinkCache(url_key);
     if (cachedLink) {
         redirectUser(cachedLink);
         return;
     }
     // If not cached, reach out to database
     console.info('No cached link available. Reaching out to database...');
-    getLink(url);
+    try {
+        const link = getLink(url_key);
+        if (!link) {
+            redirectUser('/nfd');
+            return;
+        }
+        redirectUser(link);
+        return;
+    }
+    catch (error) {
+        console.error(error);
+        redirectUser('/rip');
+        return;
+    }
 }
 
 function parseUrl(url) {
@@ -40,7 +49,7 @@ function parseUrl(url) {
         // Validate url key
         if (!url_key || !/^[a-zA-Z0-9]{4,30}$/.test(url_key)) {
             console.error('Invalid URL');
-            return null;
+            throw SyntaxError('Invalid URL');
         }
         return url_key;
     } catch (error) {
@@ -50,15 +59,15 @@ function parseUrl(url) {
 
 function redirectUser(link) {
     console.info('Redirecting to', link);
-    // Set title to redirecting
-    document.getElementsByTagName('title')[0].textContent = "Redirecting...";
-    // Set body to link in case redirect fails
-    document.body.querySelector('p').innerHTML = `If you are not redirected, follow this link:  <br/>  <a href="${link}">${link}</a>`;
     // Add meta tag to redirect
     var meta = document.createElement('meta');
     meta.httpEquiv = "refresh";
     meta.content = `0;url=${link}`;
     document.getElementsByTagName('head')[0].appendChild(meta);
+    // Set body to link in case redirect fails
+    setTimeout(() => {
+        document.body.querySelector('p').innerHTML = `If you are not redirected, follow this link:  <br/>  <a href="${link}">${link}</a>`;
+    }, 1000);
 }
 
 // Check for and validate cached link, redirect user to long link if available
@@ -68,8 +77,8 @@ function getLinkCache(item) {
     if (cached) {
         cached = JSON.parse(cached);
         const now = new Date();
-        const accessedDate = new Date(cached.accessed_at);
-        const diffTime = Math.abs(now - accessedDate);
+        const createdDate = new Date(cached.created_at);
+        const diffTime = Math.abs(now - createdDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         if (diffDays <= CACHE_LIFETIME_DAYS) {
             console.info(`This url is cached for another ${CACHE_LIFETIME_DAYS - diffDays} days.`);
@@ -84,41 +93,35 @@ function getLinkCache(item) {
 }
 
 // Grab the long link the corresponds to this short link from the database
-async function getLink(short_url) {
-    try {
-        // Reach out to database and get long url that corresponds to short url
-        // const { data, error } = await supabase.functions.invoke('redirect', { body: { short_url: short_url } });
-        const data = null;
-        const error = null
+async function getLink(key) {
+    // Reach out to database and get long url that corresponds to short url
+    const { data, error } = await supabase.functions.invoke('redirect', { body: { short_url_key: key } });
 
-        // Check for errors
-        // If error exists, we handle it based on its type.
-        if (error) {
-            var errorDetails;
-            try {
-                const errorDetailsJson = (await error.context.json()).error;
-                errorDetails = `<b>${errorDetailsJson.code}</b> - ${errorDetailsJson.message}`;
-                // Specific "not found" error returned by .single()
-                if (errorDetailsJson.code === "PGRST116") {
-                    redirectUser('/nfd');
-                    return;
-                }
+    // Check for errors
+    // If error exists, we handle it based on its type.
+    if (error) {
+        var errorDetails;
+        // Try to check if it is not found error
+        try {
+            const errorDetailsJson = (await error.context.json()).error;
+            // Specific "not found" error returned by .single()
+            if (errorDetailsJson.code === "PGRST116") {
+                return null;
             }
-            catch {
-                errorDetails = error;
-            }
-            throw errorDetails;
+            // Else throw other error (if any)
+            errorDetails = `${errorDetailsJson.code} - ${errorDetailsJson.message}`;
         }
-        // As an extra safety measure—if data is somehow falsy even without an error.
-        if (!data) {
-            redirectUser('/nfd');
-            return;
+        // Else throw previous error
+        catch {
+            errorDetails = error;
         }
-        console.info('Got long url:', data.long_url);
-        localStorage.setItem(shortUrl, JSON.stringify({ long_url: data.long_url, accessed_at: new Date().toISOString() }));
-        redirectUser(data.long_url);
-    } catch (err) {
-        console.error('Unexpected error:', err);
-        redirectUser('/rip');
+        throw errorDetails;
     }
+    // As an extra safety measure—if data is somehow falsy even without an error.
+    if (!data) {
+        return null;
+    }
+    console.info('Got long url:', data.long_url);
+    localStorage.setItem(shortUrl, JSON.stringify({ long_url: data.long_url, created_at: new Date().toISOString() }));
+    return data.long_url;
 }

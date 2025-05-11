@@ -169,8 +169,8 @@ p {
 
     .primary-button {
         background-color: rgb(from var(--accent-color) r g b / 25%);
-        color: #b69767;
-        border-color: #ceb088;
+        color: #e09e33;
+        border-color: #f3a527;
     }
 
     .primary-button:hover {
@@ -194,8 +194,8 @@ body[data-theme="light"] {
 
 [data-theme="light"] .primary-button {
     background-color: rgb(from var(--accent-color) r g b / 25%);
-    color: #b69767;
-    border-color: #ceb088;
+    color: #e09e33;
+    border-color: #f3a527;
 }
 
 [data-theme="light"] .primary-button:hover {
